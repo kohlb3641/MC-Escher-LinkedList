@@ -46,17 +46,6 @@ class DDLinkedList
 private:
 	ListNode<T>* center{ nullptr };
 
-	// use recursion to delete every node of the list
-	void deleteList(ListNode<T>* prevNode, ListNode<T>* node)
-	{
-		// try to move in each direction, ignore previous node
-		if (node->getUp() != nullptr && node->getUp() != prevNode) deleteList(node, node->getUp());
-		if (node->getDown() != nullptr && node->getDown() != prevNode) deleteList(node, node->getDown());
-		if (node->getRight() != nullptr && node->getRight() != prevNode) deleteList(node, node->getRight());
-		if (node->getLeft() != nullptr && node->getLeft() != prevNode) deleteList(node, node->getLeft());
-		// delete node if no paths exist
-		delete node;
-	}
 public:
 	DDLinkedList(T data) 
 	{
@@ -67,6 +56,6 @@ public:
 	// Destructor
 	~DDLinkedList()
 	{
-		deleteList();
+		// TODO find every node and delete them
 	}
 };
