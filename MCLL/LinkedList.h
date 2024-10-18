@@ -6,10 +6,10 @@ class ListNode
 {
 private:
 	// fields for each direction
-	ListNode<T>* up{ nullptr };
-	ListNode<T>* down{ nullptr };
-	ListNode<T>* left{ nullptr };
-	ListNode<T>* right{ nullptr };
+	ListNode<T>* north{ nullptr };
+	ListNode<T>* south{ nullptr };
+	ListNode<T>* east{ nullptr };
+	ListNode<T>* west{ nullptr };
 
 	// field for data
 	T data;
@@ -28,16 +28,16 @@ public:
 
 	// access methods for each direction
 
-	ListNode<T>* getUp() { return up; }
-	ListNode<T>* getDown() { return down; }
-	ListNode<T>* getRight() { return right; }
-	ListNode<T>* getLeft() { return left; }
+	ListNode<T>* getNorth() { return north; }
+	ListNode<T>* getSouth() { return south; }
+	ListNode<T>* getEast() { return east; }
+	ListNode<T>* getWest() { return west; }
 
 	// mutators for each direction
-	void setUp(ListNode<T>* node) { this->up = node; }
-	void setDown(ListNode<T>* node) { this->down = node; }
-	void setRight(ListNode<T>* node) { this->right = node; }
-	void setLeft(ListNode<T>* node) { this->left = node; }
+	void setNorth(ListNode<T>* node) { this->north = node; }
+	void setSouth(ListNode<T>* node) { this->south = node; }
+	void setEast(ListNode<T>* node) { this->east = node; }
+	void setWest(ListNode<T>* node) { this->west = node; }
 };
 
 template <typename T>
