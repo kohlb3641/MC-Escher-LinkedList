@@ -1,16 +1,50 @@
 // Brendt Kohl, Connor Simon
 using namespace std;
-#include "LinkedList.h"
+#include "gameboard.h"
 #include <iostream>
 
+// method declarations
+void createMap(gameboard* list);
+void movePlayer(player* plr, char dir);
 int main()
 {
-	ListNode nodeArray[16];
-	cout << "Hello world" << endl;
+	gameboard game;
+	char dir;
 
+	// setup game map
+	createMap(&game);
+	
+	// create local player variable
+	player* plr = game.getPlayer();
+
+	// create game loop
+	do {
+		cout << "You have " << game.getPlayer()->getNumMoves() << " moves remaining." << endl;
+		cout << "You are in room " << plr->getCurPos()->getData() << ". Where would you like to go? (n,s,e,w), q to quit:";
+		cin >> dir;
+		movePlayer(plr, dir);
+
+
+	} while (dir != 'q');
 }
 
-void createMap(DDLinkedList list)
+void movePlayer(player* plr, char dir)
+{
+	if (dir == 'q') { return; } // return early if user quits
+
+	bool success = plr->movePlayer(dir);
+
+	if (success)
+	{
+		cout << "You have moved to room " << plr->getCurPos()->getData() << endl;
+	}
+	else
+	{
+		cout << "You hit your head on the hard stone wall. It stings a little." << endl;
+	}
+}
+
+void createMap(gameboard* list)
 {
 	// Create the nodes first
 	ListNode* node16 = new ListNode(16, false);
@@ -127,4 +161,9 @@ void createMap(DDLinkedList list)
 	node1->setSouth(node12);
 	node1->setEast(node2);
 	node1->setWest(node10);
+
+
+	list->setHeadNode(node1);
+	player* plr = new player(node1, 1000);
+	list->setPlayer(plr);
 }

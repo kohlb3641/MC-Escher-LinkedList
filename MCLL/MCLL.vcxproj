@@ -127,7 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="LinkedList.h" />
+    <ClInclude Include="gameboard.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EscherMaze.cpp" />

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LinkedList.h">
+    <ClInclude Include="gameboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
