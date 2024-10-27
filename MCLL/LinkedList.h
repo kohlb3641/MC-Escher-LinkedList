@@ -1,56 +1,59 @@
 #pragma once
 // Brendt Kohl, Connor Simon
 
-template <typename T>
 class ListNode
 {
 private:
 	// fields for each direction
-	ListNode<T>* north{ nullptr };
-	ListNode<T>* south{ nullptr };
-	ListNode<T>* east{ nullptr };
-	ListNode<T>* west{ nullptr };
+	ListNode* north{ nullptr };
+	ListNode* south{ nullptr };
+	ListNode* east{ nullptr };
+	ListNode* west{ nullptr };
 
 	// field for data
-	T data;
+	int data;//node ID
+	bool isEventNode;//node 15 and node 8 are event nodes
 
 public:
 
 	//basic constructor
-	ListNode(T data)
+	ListNode(int data, bool isEventNode)
 	{
 		this->data = data;
+		this->isEventNode = isEventNode;
+
 	}
 
+	ListNode() {} // default constructor, intentionally empty
 	// data methods
-	T getData() { return data; }
-	void setData(T data) { this->data = data; }
+	int getData() { return data; }
+	void setData(int data) { this->data = data; }
 
 	// access methods for each direction
 
-	ListNode<T>* getNorth() { return north; }
-	ListNode<T>* getSouth() { return south; }
-	ListNode<T>* getEast() { return east; }
-	ListNode<T>* getWest() { return west; }
+	ListNode* getNorth() { return north; }
+	ListNode* getSouth() { return south; }
+	ListNode* getEast() { return east; }
+	ListNode* getWest() { return west; }
 
 	// mutators for each direction
-	void setNorth(ListNode<T>* node) { this->north = node; }
-	void setSouth(ListNode<T>* node) { this->south = node; }
-	void setEast(ListNode<T>* node) { this->east = node; }
-	void setWest(ListNode<T>* node) { this->west = node; }
+	void setNorth(ListNode* node) { this->north = node; }
+	void setSouth(ListNode* node) { this->south = node; }
+	void setEast(ListNode* node) { this->east = node; }
+	void setWest(ListNode* node) { this->west = node; }
 };
 
-template <typename T>
+
 class DDLinkedList
 {
 private:
-	ListNode<T>* center{ nullptr };
+	ListNode* center{ nullptr };
 
 public:
-	DDLinkedList(T data) 
+	DDLinkedList(int data) 
 	{
-	// create empty node
-		center = new ListNode<T>{data};
+	// create map
+		center = new ListNode(1, false);
 	}
 
 	// Destructor
@@ -58,4 +61,10 @@ public:
 	{
 		// TODO find every node and delete them
 	}
+
+	ListNode* getHeadNode()
+	{
+		return center;
+	}
+
 };
