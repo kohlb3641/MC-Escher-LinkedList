@@ -1,14 +1,11 @@
 #pragma once
 // Brendt Kohl, Connor Simon
 #include <iostream>
-// TODO: add add/removing nodes
-// TODO: add goal node
+#include <ctime>
+// TODO: add add/removing nodes -- done
+// TODO: add descriptions for nodes
 // TODO: add "light level" effect to nodes close to the goal -- optional
 
-// declare ListNode class
-class ListNode;
-
-int ListNode::counter{ 0 };
 
 class ListNode
 {
@@ -23,17 +20,18 @@ private:
 	static int counter; // for incrementing nodeID
 	int nodeID;//node ID
 	bool isEventNode;//node 15 and node 8 are event nodes
+	int eventType{ 0 };
+	bool isDeleted{ false };
 
 public:
 
 	//basic constructor
-	ListNode(bool isEventNode) : nodeID(counter)
+	ListNode(bool isEventNode, int eventType) : nodeID(counter)
 	{
 		this->isEventNode = isEventNode;
-
+		this->eventType = eventType;
 		// increment counter
 		++counter;
-
 	}
 
 	// default constructor
@@ -42,8 +40,10 @@ public:
 		isEventNode = false;
 	}
 	// data methods
-	int getData() { return nodeID; }
+	bool removed() { return isDeleted; }
+	int getNodeID() { return nodeID; }
 	void setData(int data) { this->nodeID = data; }
+	void setDeleted(bool deleted) { this->isDeleted = deleted; }
 
 	// access methods for each direction
 
@@ -62,15 +62,28 @@ public:
 	void onTraverse()
 	{
 		// return if not an event node
-		if (!isEventNode) { return; }
-
-		// destroy references to this node
-
-		// 
-
-		// delete this
+		if (!isEventNode || isDeleted) { return; }
+		
+		// determine which event to play
+		if (eventType == 1)
+		{
+			// Add node
+			// set this east deleted to false
+			this->east->setDeleted(false);
+			// cout something
+			std::cout << "After walking into this room, you notice a door to the East magically open." << std::endl;
+		}
+		else
+		{
+			// delete node
+			this->isDeleted = true;
+			std::cout << "You enter the room and notice that the ceiling begins to rain down ontop of you! " << std::endl << "Quickly find an exit!" << std::endl;
+		}
 	}
 };
+// init counter to 0
+
+int ListNode::counter{ 1 };
 
 class player
 {
@@ -97,27 +110,25 @@ public:
 		switch (dir)
 		{
 		case 'n':
-			if(curPos->getNorth() == nullptr){
+			if(curPos->getNorth() == nullptr || curPos->getNorth()->removed()){
 				return false;
 			}
-			// move player
 
 			curPos = curPos->getNorth();
 			--numMoves;
 			return true;
 			break;
 		case 's':
-			if (curPos->getSouth() == nullptr) {
+			if (curPos->getSouth() == nullptr || curPos->getSouth()->removed()) {
 				return false;
 			}
 
 			curPos= curPos->getSouth();
 			--numMoves;
-		
 			return true;
 			break;
 		case 'e':
-			if (curPos->getEast() == nullptr) {
+			if (curPos->getEast() == nullptr || curPos->getEast()->removed()) {
 				return false;
 			}
 			curPos = curPos->getEast();
@@ -125,7 +136,7 @@ public:
 			return true;
 		break;
 		case 'w':
-			if (curPos->getWest() == nullptr) {
+			if (curPos->getWest() == nullptr || curPos->getWest()->removed()) {
 				return false;
 			}
 			curPos = curPos->getWest();
@@ -135,6 +146,7 @@ public:
 		default:
 			return false;
 		}
+		
 	}
 };
 
@@ -143,6 +155,7 @@ class gameboard
 private:
 	ListNode* center{ nullptr };
 	player* plr{ nullptr };
+	ListNode* goal{ nullptr };
 
 public:
 	gameboard()
@@ -180,23 +193,69 @@ public:
 		this->plr = plr;
 	}
 
-	void movePlayer(char dir)
+	bool movePlayer(char dir)
 	{
-		if (dir == 'q') { return; } // return early if user quit
+		if (dir == 'q') { return false; } // return early if user quit
 
 		bool success = plr->movePlayer(dir);
 
 		if (success)
 		{
-			std::cout << "You have moved to room " << plr->getCurPos()->getData() << std::endl;
+			std::cout << "You have moved to room " << plr->getCurPos()->getNodeID() << std::endl;
 		}
 		else
 		{
 			std::cout << "You hit your head on a hard stone wall. It stings a little." << std::endl;
 		}
+		// check if player hit the goal, return true
+		cout << "goal pointer: " << goal << " this pointer: " << plr->getCurPos() << endl;
+		if(plr->getCurPos() == goal){
+			return true;
+		}
+		// check if player runs out of moves
+		if (plr->getNumMoves() <= 0) {
+			std::cout << "You have failed to make it out of the maze in time." << std::endl;
+			return false;
+		}
+
 		
 		// call onTraverse method in new node
 		plr->getCurPos()->onTraverse();
+		return false;
+	}
+
+	//REMOVE -- early traverse attempt
+	bool traverseTest()
+	{
+		ListNode* nextNode = center;
+		int headID = nextNode->getNodeID();
+		//determine next node
+		while (headID < 16)
+		{
+			headID = nextNode->getNodeID();
+			if (nextNode->getNorth() != nullptr && nextNode->getNorth()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getNorth();
+			}
+			else if (nextNode->getSouth() != nullptr &&  nextNode->getSouth()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getSouth();
+			}
+			else if (nextNode->getEast() != nullptr && nextNode->getEast()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getEast();
+			}
+			else if (nextNode->getWest() != nullptr && nextNode->getWest()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getWest();
+			}
+			else
+			{
+				break;
+			}
+			++headID;
+		}
+		if (headID == 16) return true;
 	}
 
 	void createMap()
@@ -205,24 +264,32 @@ public:
 		if (center != nullptr) { return; }
 
 		// Create nodes
-		ListNode* node1 = new ListNode(false);
-		ListNode* node2 = new ListNode(false);
-		ListNode* node3 = new ListNode(false);
-		ListNode* node4 = new ListNode(false);
-		ListNode* node5 = new ListNode(false);
-		ListNode* node6 = new ListNode(false);
-		ListNode* node7 = new ListNode(false);
-		ListNode* node8 = new ListNode(false);
-		ListNode* node9 = new ListNode(false);
-		ListNode* node10 = new ListNode(false);
-		ListNode* node11 = new ListNode(false);
-		ListNode* node12 = new ListNode(false);
-		ListNode* node13 = new ListNode(false);
-		ListNode* node14 = new ListNode(false);
-		ListNode* node15 = new ListNode(false);
-		ListNode* node16 = new ListNode(false);
-
+		ListNode* node1 = new ListNode(false, 0);
+		ListNode* node2 = new ListNode(false, 0);
+		ListNode* node3 = new ListNode(false, 0);
+		ListNode* node4 = new ListNode(false, 0);
+		ListNode* node5 = new ListNode(false, 0);
+		ListNode* node6 = new ListNode(false, 0);
+		ListNode* node7 = new ListNode(false, 0);
+		ListNode* node8 = new ListNode(true, 2);//delete node event
+		ListNode* node9 = new ListNode(false, 0);
+		ListNode* node10 = new ListNode(false, 0);
+		ListNode* node11 = new ListNode(false, 0);
+		ListNode* node12 = new ListNode(false, 0);
+		ListNode* node13 = new ListNode(false, 0);
+		ListNode* node14 = new ListNode(false, 0);
+		ListNode* node15 = new ListNode(true, 1);//add node event
+		ListNode* node16 = new ListNode(false, 0);
+		
+		// random added node
+		ListNode* node17 = new ListNode(false, 0);
 		// Set directional pointers
+		node17->setNorth(node5); // node5 E
+		node17->setSouth(node16); // node6 N
+		node17->setEast(node12); // node12 W
+		node17->setWest(node15); // node15 E
+		// set node17 to deleted
+		node17->setDeleted(true);
 
 		//for node16
 		node16->setNorth(node2);
@@ -233,7 +300,7 @@ public:
 		// For node15
 		node15->setNorth(node16);
 		node15->setSouth(node3);
-		node15->setEast(nullptr);
+		node15->setEast(node17);
 		node15->setWest(node14);
 
 		// For node14
@@ -251,12 +318,12 @@ public:
 		// For node12
 		node12->setNorth(node1);
 		node12->setSouth(node13);
-		node12->setEast(nullptr);
-		node12->setWest(nullptr);
+		node12->setEast(node11);
+		node12->setWest(node17);
 
 		// For node11
 		node11->setNorth(node10);
-		node11->setSouth(nullptr);
+		node11->setSouth(node12);
 		node11->setEast(node16);
 		node11->setWest(nullptr);
 
@@ -275,7 +342,7 @@ public:
 		// For node8
 		node8->setNorth(nullptr);
 		node8->setSouth(node9);
-		node8->setEast(nullptr);
+		node8->setEast(node7);
 		node8->setWest(nullptr);
 
 		// For node7
@@ -285,7 +352,7 @@ public:
 		node7->setWest(node8);
 
 		// For node6
-		node6->setNorth(nullptr);
+		node6->setNorth(node17);
 		node6->setSouth(nullptr);
 		node6->setEast(node5);
 		node6->setWest(node7);
@@ -293,7 +360,7 @@ public:
 		// For node5
 		node5->setNorth(node4);
 		node5->setSouth(nullptr);
-		node5->setEast(nullptr);
+		node5->setEast(node17);
 		node5->setWest(node6);
 
 		// For node4
@@ -325,5 +392,49 @@ public:
 
 		// create player starting at node1
 		plr = new player(node1);
+		
+		// determine random goal node
+		srand(time(nullptr));
+		int goalID = rand() % 16 + 2;
+		if (goalID == 8) { goalID++; }
+		//std::cout << "DEBUG -- GOAL NODE IS: " << goalID << std::endl;
+
+		ListNode* nextNode = node1;
+		int headID = nextNode->getNodeID();
+		while (headID <= 16)
+		{
+			headID = nextNode->getNodeID();
+			if (headID == goalID)
+			{
+				goal = nextNode;
+				break;
+			}
+
+			if (nextNode->getNorth() != nullptr && nextNode->getNorth()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getNorth();
+			}
+			else if (nextNode->getSouth() != nullptr && nextNode->getSouth()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getSouth();
+			}
+			else if (nextNode->getEast() != nullptr && nextNode->getEast()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getEast();
+			}
+			else if (nextNode->getWest() != nullptr && nextNode->getWest()->getNodeID() == headID + 1)
+			{
+				nextNode = nextNode->getWest();
+			}
+			else
+			{
+				// if no paths exist, break loop, set goal to center
+				goal = center;
+				break;
+			}
+			++headID;
+		}
+		// set light level of outside nodes
+		// set light level of farther outside nodes
 	}
 };
