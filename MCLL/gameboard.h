@@ -8,7 +8,7 @@
 // declare ListNode class
 class ListNode;
 
-int ListNode::counter{ 0 };
+int ListNode::counter{10};
 
 class ListNode
 {
