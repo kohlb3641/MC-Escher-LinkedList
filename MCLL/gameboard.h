@@ -1,88 +1,96 @@
 #pragma once
 // Brendt Kohl, Connor Simon
 #include <iostream>
-// TODO: add add/removing nodes
-// TODO: add goal node
+#include <string> // for room description
+#include <ctime> // for randomly choosing goal
+// TODO: add descriptions for nodes
 // TODO: add "light level" effect to nodes close to the goal -- optional
-
-// declare ListNode class
-class ListNode;
-
-int ListNode::counter{10};
+using namespace std;
 
 class ListNode
 {
 private:
-	// fields for each direction
-	ListNode* north{ nullptr };
-	ListNode* south{ nullptr };
-	ListNode* east{ nullptr };
-	ListNode* west{ nullptr };
+	// 0 == north, 1 == south, 2 == east, 3 == west
+	ListNode* directions[4];
 
 	// field for data
 	static int counter; // for incrementing nodeID
 	int nodeID;//node ID
-	bool isEventNode;//node 15 and node 8 are event nodes
+	int eventType{ 0 };
+	int lightLevel{ 0 };
+	bool isDeleted{ false };
+	// string variable for node description
+	string roomDescription;
 
 public:
 
 	//basic constructor
-	ListNode(bool isEventNode) : nodeID(counter)
+	ListNode(int eventType) : nodeID(counter)
 	{
-		this->isEventNode = isEventNode;
-
+		this->eventType = eventType;
 		// increment counter
 		++counter;
-
 	}
 
 	// default constructor
 	ListNode() {
 		nodeID = 0;
-		isEventNode = false;
 	}
-	// data methods
-	int getData() { return nodeID; }
+
+	// data getters
+	bool removed() { return isDeleted; }
+	int getNodeID() { return nodeID; }
+	int getLightLevel() { return lightLevel; }
+
+	// data setters
 	void setData(int data) { this->nodeID = data; }
+	void setDeleted(bool deleted) { this->isDeleted = deleted; }
+	void setLightLevel(int level) { this->lightLevel = level; }
+	void setDescription(string desc) { this->roomDescription = desc; }
 
 	// access methods for each direction
+	ListNode* getDirections(int index) { return directions[index]; }
 
-	ListNode* getNorth() { return north; }
-	ListNode* getSouth() { return south; }
-	ListNode* getEast() { return east; }
-	ListNode* getWest() { return west; }
-
-	// mutators for each direction
-	void setNorth(ListNode* node) { this->north = node; }
-	void setSouth(ListNode* node) { this->south = node; }
-	void setEast(ListNode* node) { this->east = node; }
-	void setWest(ListNode* node) { this->west = node; }
+	// set direction for given index
+	void setDirections(int index, ListNode* nodeRef) { directions[index] = nodeRef; }
 
 	// event method
 	void onTraverse()
 	{
 		// return if not an event node
-		if (!isEventNode) { return; }
-
-		// destroy references to this node
-
-		// 
-
-		// delete this
+		if (eventType == 0 || isDeleted) { return; }
+		
+		// determine which event to play
+		if (eventType == 1) // add node event
+		{
+			// set this east deleted to false
+			directions[2]->setDeleted(false);
+			// cout something
+			cout << "After walking into this room, you notice a door to the East magically open." << endl;
+		}
+		else // 2: delete node event
+		{
+			this->isDeleted = true;
+			cout << "You enter the room and notice that the ceiling begins to rain down ontop of you! " << endl << "Quickly find an exit!" << endl;
+		}
 	}
 };
+// init counter to 0
+
+int ListNode::counter{ 1 };
 
 class player
 {
 private:
 	ListNode* curPos{ nullptr };
-	int numMoves{10};
+	int numMoves;
 
 public:
 
-	player(ListNode* startingPos)
+	player(ListNode* startingPos, int moves)
 	{
 		this->curPos = startingPos;
+		this->numMoves = moves;
 	}
 	ListNode* getCurPos()
 	{
@@ -94,47 +102,33 @@ public:
 	}
 	bool movePlayer(char dir)
 	{
+		int selectedDir;
 		switch (dir)
 		{
 		case 'n':
-			if(curPos->getNorth() == nullptr){
-				return false;
-			}
-			// move player
-
-			curPos = curPos->getNorth();
-			--numMoves;
-			return true;
+			selectedDir = 0;
 			break;
 		case 's':
-			if (curPos->getSouth() == nullptr) {
-				return false;
-			}
-
-			curPos= curPos->getSouth();
-			--numMoves;
-		
-			return true;
+			selectedDir = 1;
 			break;
 		case 'e':
-			if (curPos->getEast() == nullptr) {
-				return false;
-			}
-			curPos = curPos->getEast();
-			--numMoves;
-			return true;
-		break;
+			selectedDir = 2; 
+			break;
 		case 'w':
-			if (curPos->getWest() == nullptr) {
-				return false;
-			}
-			curPos = curPos->getWest();
-			--numMoves;
-			return true;
+			selectedDir = 3;
 			break;
 		default:
+			// no valid direction chosen, return early
 			return false;
 		}
+		// make temp variable for next node reference
+		ListNode* selectedNode = curPos->getDirections(selectedDir);
+		// check if next node is null or if its been deleted, return false early.
+		if (selectedNode == nullptr || selectedNode->removed()) { return false; }
+
+		curPos = selectedNode;
+		--numMoves;
+		return true;
 	}
 };
 
@@ -143,60 +137,80 @@ class gameboard
 private:
 	ListNode* center{ nullptr };
 	player* plr{ nullptr };
-
+	ListNode* goal{ nullptr };
+	const int startingMoves;
+	
 public:
-	gameboard()
-	{
-		//TODO: randomize starting node (?)
-	}
+	// default constructor - init moves to 15
+	gameboard() : startingMoves(15) {}
+
+	// optional constructor if the user wants a custom move number
+	gameboard(int moves) : startingMoves(moves) {}
 
 	// Destructor
 	~gameboard()
 	{
-		// TODO find every node and delete them
+		// check all paths, find next highest nodeID, delete node and continue until no paths exist
+		ListNode* nextNode = center;
+		int curID = nextNode->getNodeID();
+		while (curID <= 17)
+		{
+			ListNode* tempNode = nextNode;
+			curID = nextNode->getNodeID();
+
+			// find next node
+			for (int i = 0; i < 4; i++)
+			{
+				ListNode* ProspectedNode = nextNode->getDirections(i);
+				if (ProspectedNode != nullptr && ProspectedNode->getNodeID() == curID + 1)
+				{
+					nextNode = ProspectedNode;
+				}
+			}
+			// no paths found, exit loop to prevent infinite looping
+			if (nextNode == tempNode) { break; }
+			++curID;
+			// delete tempNode
+			delete tempNode;
+		}
 	}
 
 	// getters
-
-	ListNode* getHeadNode()
-	{
-		return center;
-	}
-
-	player* getPlayer()
-	{
-		return plr;
-	}
+	ListNode* getHeadNode() { return center; }
+	player* getPlayer() { return plr; }
+	int getStartingMoves() { return startingMoves; }
 
 	// setters
+	void setHeadNode(ListNode* head) { center = head; }
+	void setPlayer(player* plr) { this->plr = plr; }
 
-	void setHeadNode(ListNode* head)
+	bool movePlayer(char dir)
 	{
-		center = head;
-	}
-
-	void setPlayer(player* plr)
-	{
-		this->plr = plr;
-	}
-
-	void movePlayer(char dir)
-	{
-		if (dir == 'q') { return; } // return early if user quit
+		if (dir == 'q') { return false; } // return early if user quit
 
 		bool success = plr->movePlayer(dir);
 
 		if (success)
 		{
-			std::cout << "You have moved to room " << plr->getCurPos()->getData() << std::endl;
+			cout << "You have moved to room " << plr->getCurPos()->getNodeID() << endl;
 		}
 		else
 		{
-			std::cout << "You hit your head on a hard stone wall. It stings a little." << std::endl;
+			cout << "You hit your head on a hard stone wall. It stings a little." << endl;
+		}
+		// check if player hit the goal, return true
+		if(plr->getCurPos() == goal){
+			return true;
+		}
+		// check if player runs out of moves
+		if (plr->getNumMoves() <= 0) {
+			cout << "You have failed to make it out of the maze in time." << endl;
+			return false;
 		}
 		
 		// call onTraverse method in new node
 		plr->getCurPos()->onTraverse();
+		return false;
 	}
 
 	void createMap()
@@ -204,126 +218,174 @@ public:
 		// prevent creating the map twice
 		if (center != nullptr) { return; }
 
-		// Create nodes
-		ListNode* node1 = new ListNode(false);
-		ListNode* node2 = new ListNode(false);
-		ListNode* node3 = new ListNode(false);
-		ListNode* node4 = new ListNode(false);
-		ListNode* node5 = new ListNode(false);
-		ListNode* node6 = new ListNode(false);
-		ListNode* node7 = new ListNode(false);
-		ListNode* node8 = new ListNode(false);
-		ListNode* node9 = new ListNode(false);
-		ListNode* node10 = new ListNode(false);
-		ListNode* node11 = new ListNode(false);
-		ListNode* node12 = new ListNode(false);
-		ListNode* node13 = new ListNode(false);
-		ListNode* node14 = new ListNode(false);
-		ListNode* node15 = new ListNode(false);
-		ListNode* node16 = new ListNode(false);
+		ListNode* node1 = new ListNode(0);
+		ListNode* node2 = new ListNode(0);
+		ListNode* node3 = new ListNode(0);
+		ListNode* node4 = new ListNode(0);
+		ListNode* node5 = new ListNode(0);
+		ListNode* node6 = new ListNode(0);
+		ListNode* node7 = new ListNode(0);
+		ListNode* node8 = new ListNode(2);
+		ListNode* node9 = new ListNode(0);
+		ListNode* node10 = new ListNode(0);
+		ListNode* node11 = new ListNode(0);
+		ListNode* node12 = new ListNode(0);
+		ListNode* node13 = new ListNode(0);
+		ListNode* node14 = new ListNode(0);
+		ListNode* node15 = new ListNode(1);
+		ListNode* node16 = new ListNode(0);
+		ListNode* node17 = new ListNode(0);
+		
+		// For node17
+		node17->setDirections(0, node5);  // North -> node5
+		node17->setDirections(1, node16); // South -> node16
+		node17->setDirections(2, node12); // East -> node12
+		node17->setDirections(3, node15); // West -> node15
+		node17->setDeleted(true);        // Set node17 to deleted
 
-		// Set directional pointers
-
-		//for node16
-		node16->setNorth(node2);
-		node16->setSouth(node15);
-		node16->setEast(node4);
-		node16->setWest(node11);
+		// For node16
+		node16->setDirections(0, node2);  // North -> node2
+		node16->setDirections(1, node15); // South -> node15
+		node16->setDirections(2, node4);  // East -> node4
+		node16->setDirections(3, node11); // West -> node11
 
 		// For node15
-		node15->setNorth(node16);
-		node15->setSouth(node3);
-		node15->setEast(nullptr);
-		node15->setWest(node14);
+		node15->setDirections(0, node16); // North -> node16
+		node15->setDirections(1, node3);  // South -> node3
+		node15->setDirections(2, node17); // East -> node17
+		node15->setDirections(3, node14); // West -> node14
 
 		// For node14
-		node14->setNorth(nullptr);
-		node14->setSouth(node2);
-		node14->setEast(node15);
-		node14->setWest(node13);
+		node14->setDirections(0, nullptr); // North -> nullptr
+		node14->setDirections(1, node2);   // South -> node2
+		node14->setDirections(2, node15);  // East -> node15
+		node14->setDirections(3, node13);  // West -> node13
 
 		// For node13
-		node13->setNorth(node12);
-		node13->setSouth(node1);
-		node13->setEast(node14);
-		node13->setWest(node9);
+		node13->setDirections(0, node12);  // North -> node12
+		node13->setDirections(1, node1);   // South -> node1
+		node13->setDirections(2, node14);  // East -> node14
+		node13->setDirections(3, node9);   // West -> node9
 
 		// For node12
-		node12->setNorth(node1);
-		node12->setSouth(node13);
-		node12->setEast(nullptr);
-		node12->setWest(nullptr);
+		node12->setDirections(0, node1);   // North -> node1
+		node12->setDirections(1, node13);  // South -> node13
+		node12->setDirections(2, node11);  // East -> node11
+		node12->setDirections(3, node17);  // West -> node17
 
 		// For node11
-		node11->setNorth(node10);
-		node11->setSouth(nullptr);
-		node11->setEast(node16);
-		node11->setWest(nullptr);
+		node11->setDirections(0, node10);  // North -> node10
+		node11->setDirections(1, node12);  // South -> node12
+		node11->setDirections(2, node16);  // East -> node16
+		node11->setDirections(3, nullptr); // West -> nullptr
 
 		// For node10
-		node10->setNorth(node9);
-		node10->setSouth(node11);
-		node10->setEast(node1);
-		node10->setWest(nullptr);
+		node10->setDirections(0, node9);   // North -> node9
+		node10->setDirections(1, node11);  // South -> node11
+		node10->setDirections(2, node1);   // East -> node1
+		node10->setDirections(3, nullptr); // West -> nullptr
 
 		// For node9
-		node9->setNorth(node4);
-		node9->setSouth(node10);
-		node9->setEast(node13);
-		node9->setWest(node8);
+		node9->setDirections(0, node4);    // North -> node4
+		node9->setDirections(1, node10);   // South -> node10
+		node9->setDirections(2, node13);   // East -> node13
+		node9->setDirections(3, node8);    // West -> node8
 
 		// For node8
-		node8->setNorth(nullptr);
-		node8->setSouth(node9);
-		node8->setEast(nullptr);
-		node8->setWest(nullptr);
+		node8->setDirections(0, nullptr);  // North -> nullptr
+		node8->setDirections(1, node9);    // South -> node9
+		node8->setDirections(2, node7);    // East -> node7
+		node8->setDirections(3, nullptr);  // West -> nullptr
 
 		// For node7
-		node7->setNorth(nullptr);
-		node7->setSouth(nullptr);
-		node7->setEast(node6);
-		node7->setWest(node8);
+		node7->setDirections(0, nullptr);  // North -> nullptr
+		node7->setDirections(1, nullptr);  // South -> nullptr
+		node7->setDirections(2, node6);    // East -> node6
+		node7->setDirections(3, node8);    // West -> node8
 
 		// For node6
-		node6->setNorth(nullptr);
-		node6->setSouth(nullptr);
-		node6->setEast(node5);
-		node6->setWest(node7);
+		node6->setDirections(0, node17);   // North -> node17
+		node6->setDirections(1, nullptr);  // South -> nullptr
+		node6->setDirections(2, node5);    // East -> node5
+		node6->setDirections(3, node7);    // West -> node7
 
 		// For node5
-		node5->setNorth(node4);
-		node5->setSouth(nullptr);
-		node5->setEast(nullptr);
-		node5->setWest(node6);
+		node5->setDirections(0, node4);    // North -> node4
+		node5->setDirections(1, nullptr);  // South -> nullptr
+		node5->setDirections(2, node17);   // East -> node17
+		node5->setDirections(3, node6);    // West -> node6
 
 		// For node4
-		node4->setNorth(node3);
-		node4->setSouth(node5);
-		node4->setEast(node9);
-		node4->setWest(node16);
+		node4->setDirections(0, node3);    // North -> node3
+		node4->setDirections(1, node5);    // South -> node5
+		node4->setDirections(2, node9);    // East -> node9
+		node4->setDirections(3, node16);   // West -> node16
 
 		// For node3
-		node3->setNorth(node15);
-		node3->setSouth(node4);
-		node3->setEast(nullptr);
-		node3->setWest(node2);
+		node3->setDirections(0, node15);   // North -> node15
+		node3->setDirections(1, node4);    // South -> node4
+		node3->setDirections(2, nullptr);  // East -> nullptr
+		node3->setDirections(3, node2);    // West -> node2
 
 		// For node2
-		node2->setNorth(node14);
-		node2->setSouth(node16);
-		node2->setEast(node3);
-		node2->setWest(node1);
+		node2->setDirections(0, node14);   // North -> node14
+		node2->setDirections(1, node16);   // South -> node16
+		node2->setDirections(2, node3);    // East -> node3
+		node2->setDirections(3, node1);    // West -> node1
 
-		//for node1
-		node1->setNorth(node13);
-		node1->setSouth(node12);
-		node1->setEast(node2);
-		node1->setWest(node10);
+		// For node1
+		node1->setDirections(0, node13);   // North -> node13
+		node1->setDirections(1, node12);   // South -> node12
+		node1->setDirections(2, node2);    // East -> node2
+		node1->setDirections(3, node10);   // West -> node10
 
+
+		/////////////////////////////////////
 		// set headNode to node1
-		center = node1;
 
 		// create player starting at node1
-		plr = new player(node1);
+		plr = new player(node1, startingMoves);
+		
+		// determine random goal node
+		srand(time(nullptr));
+
+		
+		int goalID = rand() % 15 + 2;
+		if (goalID == 8) { goalID++; }
+		center = node1;
+		////////////////
+		ListNode* nextNode = center;
+		int curID = nextNode->getNodeID();
+		// find goal node from random curID
+		while (goalID != curID)
+		{
+			// find next node
+			for (int i = 0; i < 4; i++)
+			{
+				ListNode* ProspectedNode = nextNode->getDirections(i);
+				if (ProspectedNode != nullptr && ProspectedNode->getNodeID() == curID + 1)
+				{
+					nextNode = ProspectedNode;
+					break;
+				}
+			}
+			// update curID
+			curID = nextNode->getNodeID();
+		}
+		goal = nextNode;
+		//////////////////
+		// set light level of outside nodes
+		for (int i = 0; i < 4; i++)
+		{
+			if (goal->getDirections(i) == nullptr) { continue; }
+			goal->getDirections(i)->setLightLevel(2);
+			// set light level of outside outside nodes
+			for (int j = 0; j < 4; j++)
+			{
+				if (goal->getDirections(i)->getDirections(j) == nullptr) { continue; }
+				goal->getDirections(i)->getDirections(j)->setLightLevel(1);
+			}
+		}
+
 	}
 };
