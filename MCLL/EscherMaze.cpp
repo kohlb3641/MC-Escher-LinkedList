@@ -22,6 +22,8 @@ int main()
 	do {
 		// seperate dialogue
 		cout << "-----------------------------------------------------------" << endl;
+
+
 		// cout light level of current room
 		switch (plr->getCurPos()->getLightLevel())
 		{
