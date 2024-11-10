@@ -44,7 +44,7 @@ int main()
 		bool hitGoal = game.movePlayer(dir);
 		if (hitGoal)
 		{
-			cout << "!! Congratulations! You've found the end in " << game.getStartingMoves() - game.getPlayer()->getNumMoves() << " moves. !!" << endl;
+			cout << "!! Congratulations! You've found the exit in " << game.getStartingMoves() - game.getPlayer()->getNumMoves() << " moves. !!" << endl;
 			break;
 		}
 	} while (dir != 'q' && plr->getNumMoves() > 0);

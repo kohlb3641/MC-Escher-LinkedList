@@ -208,44 +208,47 @@ public:
 			return false;
 		}
 		//room descriptions
-		if (plr->getCurPos()->getNodeID() == 2) {
-			cout << "This room is humid compared to the rest of the maze. it smells like an old basement." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 3) {
-			cout << "This room smells of dead leaves. You hear distant sounds of birds and wildlife coming from no specific direction." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 4) {
-			cout << "Sounds of crashing ocean waves fill the room. the sound is deafening, yet the room is bone dry." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 5) {
-			cout << "This room gives off a dry desert heat. the wall and floors are hot to the touch." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 6) {
-			cout << "As you enter the room you begin to have feelings of nostalgia. Memories of childhood begin to flood your mind." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 9) {
-			cout << "The room floods with the voices of 1000 people. It's overwhelming and impossible to distinguish the words." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 10) {
-			cout << "As you enter the room you begin to hear classical music being played. the sound is distant and very faint." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 11) {
-			cout << "This room smells like a Wendy's" << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 12) {
-			cout << "As you enter you hear distant sounds of child laughter and school bells. the Room smells of chalk from a chalk board." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 13) {
-			cout << "This room makes you feel uncomfortable, You feel as if you're being watched." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 14) {
-			cout << "Smells of campfire flood your nose, yet the room is empty." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 16) {
-			cout << "Nothing feels special about this room, It's normality is unsettling." << endl;
-		}
-		if (plr->getCurPos()->getNodeID() == 17) {
-			cout << "This room feels some sort of mystical. It gives off an unearthly aura." << endl;
+		switch (plr->getCurPos()->getNodeID()) {
+
+			case 2:
+				cout << "This room is humid compared to the rest of the maze. it smells like an old basement." << endl;
+				break;
+			case 3:
+				cout << "This room smells of dead leaves. You hear distant sounds of birds and wildlife coming from no specific direction." << endl;
+				break;
+			case 4:
+				cout << "Sounds of crashing ocean waves fill the room. the sound is deafening, yet the room is bone dry." << endl;
+				break;
+			case 5:
+				cout << "This room gives off a dry desert heat. the wall and floors are hot to the touch." << endl;
+				break;
+			case 6:
+				cout << "As you enter the room you begin to have feelings of nostalgia. Memories of childhood begin to flood your mind." << endl;
+				break;
+			case 9:
+				cout << "The room floods with the voices of 1000 people. It's overwhelming and impossible to distinguish the words." << endl;
+				break;
+			case 10:
+				cout << "As you enter the room you begin to hear classical music being played. the sound is distant and very faint." << endl;
+				break;
+			case 11:
+				cout << "This room smells like a Wendy's" << endl;
+				break;
+			case 12:
+				cout << "As you enter you hear distant sounds of child laughter and school bells. the Room smells of chalk from a chalk board." << endl;
+				break;
+			case 13:
+				cout << "This room makes you feel uncomfortable, You feel as if you're being watched." << endl;
+				break;
+			case 14:
+				cout << "Smells of campfire flood your nose, yet the room is empty." << endl;
+				break;
+			case 16:
+				cout << "Nothing feels special about this room, It's normality is unsettling." << endl;
+				break;
+			case 17:
+				cout << "This room feels some sort of mystical. It gives off an unearthly aura." << endl;
+				break;
 		}
 		
 		
