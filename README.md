@@ -1,3 +1,3 @@
 # MCLL
 
-ASCII Graphics game using MC Escher-style geometry.
+Text based maze escape game using MC Escher-style geometry.
