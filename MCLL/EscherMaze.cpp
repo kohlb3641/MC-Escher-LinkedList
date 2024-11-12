@@ -12,7 +12,7 @@ int main()
 	// welcome player to the game 
 	cout << "Welcome user to the maze! You have fallen down a hole in the ground and end up in complete darkness." << endl
 		<< "You must rely on your trusty compass to find the exit." << endl
-		<< "But as a horrible stroke of luck, the ceiling is starting to crumble on top of you, and you have a limited time to find the exit! good luck!" << endl;
+		<< "But as a horrible stroke of luck, the ceiling is starting to crumble on top of you, and you have a limited time to find the exit!" << endl;
 		
 	// setup game map
 	game.createMap();
@@ -20,8 +20,6 @@ int main()
 	player* plr = game.getPlayer();
 	// create game loop
 	do {
-		// seperate dialogue
-		cout << "-----------------------------------------------------------" << endl;
 
 
 		// cout light level of current room
@@ -38,7 +36,7 @@ int main()
 			break;
 		}
 
-		cout << "You have " << game.getPlayer()->getNumMoves() << " moves remaining." << endl;
+		cout << ">>You have " << game.getPlayer()->getNumMoves() << " moves remaining." << endl;
 		cout << "You are in room " << plr->getCurPos()->getNodeID() << ". Where would you like to go? (n,s,e,w), q to quit:";
 		cin >> dir;
 		bool hitGoal = game.movePlayer(dir);
@@ -47,5 +45,7 @@ int main()
 			cout << "!! Congratulations! You've found the exit in " << game.getStartingMoves() - game.getPlayer()->getNumMoves() << " moves. !!" << endl;
 			break;
 		}
+		// seperate dialogue
+		cout << "-----------------------------------------------------------" << endl;
 	} while (dir != 'q' && plr->getNumMoves() > 0);
 }

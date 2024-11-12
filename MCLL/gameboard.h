@@ -1,10 +1,7 @@
 #pragma once
 // Brendt Kohl, Connor Simon
 #include <iostream>
-#include <string> // for room description
-#include <ctime> // for randomly choosing goal
-// TODO: add descriptions for nodes
-// TODO: add "light level" effect to nodes close to the goal -- optional
+#include <ctime> // for random
 using namespace std;
 
 class ListNode
@@ -19,8 +16,6 @@ private:
 	int eventType{ 0 };
 	int lightLevel{ 0 };
 	bool isDeleted{ false };
-	// string variable for node description
-	string roomDescription;
 
 public:
 
@@ -46,7 +41,6 @@ public:
 	void setData(int data) { this->nodeID = data; }
 	void setDeleted(bool deleted) { this->isDeleted = deleted; }
 	void setLightLevel(int level) { this->lightLevel = level; }
-	void setDescription(string desc) { this->roomDescription = desc; }
 
 	// access methods for each direction
 	ListNode* getDirections(int index) { return directions[index]; }
@@ -137,14 +131,14 @@ class gameboard
 private:
 	ListNode* center{ nullptr };
 	player* plr{ nullptr };
-	ListNode* goal{ nullptr };
+	int goalID{ 0 };
 	const int startingMoves;
 	
 public:
 	// default constructor - init moves to 15
 	gameboard() : startingMoves(15) {}
 
-	// optional constructor if the user wants a custom move number
+	// optional constructor if the user wants a custom move amount
 	gameboard(int moves) : startingMoves(moves) {}
 
 	// Destructor
@@ -173,6 +167,8 @@ public:
 			// delete tempNode
 			delete tempNode;
 		}
+		// delete other initialized pointers
+		delete plr;
 	}
 
 	// getters
@@ -199,7 +195,7 @@ public:
 			cout << "You hit your head on a hard stone wall. It stings a little." << endl;
 		}
 		// check if player hit the goal, return true
-		if(plr->getCurPos() == goal){
+		if(plr->getCurPos()->getNodeID() == goalID) {
 			return true;
 		}
 		// check if player runs out of moves
@@ -207,7 +203,7 @@ public:
 			cout << "You have failed to make it out of the maze in time." << endl;
 			return false;
 		}
-		//room descriptions
+		// output description of room 
 		switch (plr->getCurPos()->getNodeID()) {
 
 			case 2:
@@ -250,8 +246,6 @@ public:
 				cout << "This room feels some sort of mystical. It gives off an unearthly aura." << endl;
 				break;
 		}
-		
-		
 		
 		// call onTraverse method in new node
 		plr->getCurPos()->onTraverse();
@@ -395,10 +389,9 @@ public:
 		srand(time(nullptr));
 
 		
-		int goalID = rand() % 15 + 2;
+		goalID = rand() % 15 + 2;
 		if (goalID == 8) { goalID++; }
 		center = node1;
-		////////////////
 		ListNode* nextNode = center;
 		int curID = nextNode->getNodeID();
 		// find goal node from random curID
@@ -417,18 +410,17 @@ public:
 			// update curID
 			curID = nextNode->getNodeID();
 		}
-		goal = nextNode;
-		//////////////////
+
 		// set light level of outside nodes
 		for (int i = 0; i < 4; i++)
 		{
-			if (goal->getDirections(i) == nullptr) { continue; }
-			goal->getDirections(i)->setLightLevel(2);
+			if (nextNode->getDirections(i) == nullptr) { continue; }
+			nextNode->getDirections(i)->setLightLevel(2);
 			// set light level of outside outside nodes
 			for (int j = 0; j < 4; j++)
 			{
-				if (goal->getDirections(i)->getDirections(j) == nullptr) { continue; }
-				goal->getDirections(i)->getDirections(j)->setLightLevel(1);
+				if (nextNode->getDirections(i)->getDirections(j) == nullptr) { continue; }
+				nextNode->getDirections(i)->getDirections(j)->setLightLevel(1);
 			}
 		}
 
